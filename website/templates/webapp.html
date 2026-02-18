@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHIZOGP Mini App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--tg-theme-bg-color, #0a0a0f);
+            color: var(--tg-theme-text-color, white);
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: 800;
+        }
+        .logo span {
+            color: var(--tg-theme-button-color, #ff3366);
+        }
+        .listings-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .listing-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 15px;
+        }
+        .listing-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .listing-price {
+            color: var(--tg-theme-button-color, #ff3366);
+            font-size: 20px;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+        .buy-btn {
+            background: var(--tg-theme-button-color, #ff3366);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            width: 100%;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">SHIZO<span>GP</span></div>
+            <div id="balance">0 🪙</div>
+        </div>
+        
+        <div class="listings-grid" id="listings-grid">
+            <p>Загрузка...</p>
+        </div>
+    </div>
+    
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        
+        async function loadListings() {
+            const response = await fetch('/api/listings');
+            const listings = await response.json();
+            
+            const grid = document.getElementById('listings-grid');
+            grid.innerHTML = listings.map(listing => `
+                <div class="listing-card">
+                    <div class="listing-name">${listing.skin_name}</div>
+                    <div>${listing.quality}</div>
+                    <div class="listing-price">$${listing.price_usd}</div>
+                    <button class="buy-btn" onclick="buyListing(${listing.id})">Купить</button>
+                </div>
+            `).join('');
+        }
+        
+        function buyListing(id) {
+            tg.sendData(JSON.stringify({
+                action: 'buy',
+                listing_id: id
+            }));
+            tg.close();
+        }
+        
+        loadListings();
+    </script>
+</body>
+</html>
